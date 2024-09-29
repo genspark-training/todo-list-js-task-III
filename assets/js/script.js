@@ -2,19 +2,31 @@ const taskInput = document.getElementById('task-input');
 const addTaskBtn = document.getElementById('add-task-btn');
 const taskList = document.getElementById('task-list');
 
-let headerAdded = false; // Flag to check if header is added
-
 function createTaskElement(taskText, completed = false) {
     const li = document.createElement('li');
     const completeIcon = document.createElement('span');
     completeIcon.classList.add('complete-icon');
     completeIcon.innerHTML = '<i class="fa-regular fa-square"></i>';
 
-    // Set the initial completed state
     if (completed) {
         completeIcon.querySelector('i').classList.remove('fa-square');
         completeIcon.querySelector('i').classList.add('fa-square-check');
+        li.classList.add('completed'); 
     }
+
+    completeIcon.addEventListener('click', () => {
+        const icon = completeIcon.querySelector('i');
+        if (icon.classList.contains('fa-square')) {
+            icon.classList.remove('fa-square');
+            icon.classList.add('fa-square-check');
+            li.classList.add('completed'); 
+        } else {
+            icon.classList.remove('fa-square-check');
+            icon.classList.add('fa-square');
+            li.classList.remove('completed'); 
+        }
+        updateLocalStorage();
+    });
 
     const taskContent = document.createElement('span');
     taskContent.classList.add('task-content');
@@ -25,24 +37,24 @@ function createTaskElement(taskText, completed = false) {
 
     const editIcon = document.createElement('span');
     editIcon.classList.add('edit-icon');
-    editIcon.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';  // Edit icon
+    editIcon.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>'; 
 
     editIcon.addEventListener('click', () => {
         const newTaskText = prompt('Edit task', taskText);
         if (newTaskText !== null && newTaskText.trim() !== '') {
             taskContent.textContent = newTaskText;
-            updateLocalStorage(); // Update local storage on edit
+            updateLocalStorage(); 
         }
     });
 
     const deleteIcon = document.createElement('span');
     deleteIcon.classList.add('delete-icon');
-    deleteIcon.innerHTML = '<i class="fa-solid fa-trash"></i>';  // Delete icon
+    deleteIcon.innerHTML = '<i class="fa-solid fa-trash"></i>'; 
 
     deleteIcon.addEventListener('click', () => {
         li.remove();
-        updateLocalStorage(); // Update local storage on delete
-        checkHeaderVisibility(); // Check header visibility after deleting
+        updateLocalStorage(); 
+        checkHeaderVisibility(); 
     });
 
     actions.appendChild(editIcon);
@@ -54,18 +66,17 @@ function createTaskElement(taskText, completed = false) {
     return li;
 }
 
-// Function to check header visibility
 function checkHeaderVisibility() {
+    const taskHeader = document.querySelector('.task-header');
     if (taskList.children.length === 0) {
-        const taskHeader = document.querySelector('.task-header');
         if (taskHeader) taskHeader.remove();
-        headerAdded = false; // Reset header flag
-    } else if (!headerAdded) {
-        addHeader();
+    } else {
+        if (!taskHeader) {
+            addHeader();
+        }
     }
 }
 
-// Function to add header
 function addHeader() {
     const taskHeader = document.createElement('div');
     taskHeader.classList.add('task-header');
@@ -73,29 +84,26 @@ function addHeader() {
     headerItem.classList.add('header-item');
     headerItem.textContent = 'Task';
     taskHeader.appendChild(headerItem);
-    taskList.insertAdjacentElement('beforebegin', taskHeader); // Insert header before the task list
-    headerAdded = true; // Set the header added flag
+    taskList.insertAdjacentElement('beforebegin', taskHeader); 
 }
 
-// Function to update local storage
 function updateLocalStorage() {
     const tasks = [];
     for (let taskItem of taskList.children) {
         const taskContent = taskItem.querySelector('.task-content').textContent;
-        const isCompleted = taskItem.querySelector('.complete-icon i').classList.contains('fa-square-check');
+        const isCompleted = taskItem.classList.contains('completed'); 
         tasks.push({ text: taskContent, completed: isCompleted });
     }
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
-// Function to load tasks from local storage
 function loadTasks() {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     tasks.forEach(task => {
         const taskElement = createTaskElement(task.text, task.completed);
         taskList.appendChild(taskElement);
     });
-    checkHeaderVisibility(); // Check header visibility after loading tasks
+    checkHeaderVisibility(); 
 }
 
 addTaskBtn.addEventListener('click', () => {
@@ -104,8 +112,8 @@ addTaskBtn.addEventListener('click', () => {
         const taskElement = createTaskElement(taskText);
         taskList.appendChild(taskElement);
         taskInput.value = '';
-        updateLocalStorage(); // Update local storage after adding a new task
-        checkHeaderVisibility(); // Check header visibility after adding
+        updateLocalStorage(); 
+        checkHeaderVisibility(); 
     } else {
         alert('Please enter a task.');
     }
@@ -117,5 +125,4 @@ taskInput.addEventListener('keydown', (event) => {
     }
 });
 
-// Load tasks from local storage when the page loads
 window.onload = loadTasks;
